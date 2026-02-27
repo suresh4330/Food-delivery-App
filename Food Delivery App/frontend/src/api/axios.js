@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Get the API URL from env, remove trailing slash if present, or fallback to localhost
+const envURL = import.meta.env.VITE_API_URL;
+const baseURL = envURL ? envURL.replace(/\/$/, '') : 'http://localhost:5000/api';
 
 // Debugging: Check the browser console to see if the correct URL is loaded
 console.log("Current API Base URL:", baseURL);
