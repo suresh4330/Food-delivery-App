@@ -1,0 +1,286 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ===== SWIGGY STYLE SYSTEM ===== */
+:root {
+  --swiggy-orange: #FC8019;
+  --swiggy-orange-dark: #E37012;
+  --swiggy-orange-light: #FFF3E8;
+  --swiggy-green: #48C479;
+  --swiggy-red: #E23744;
+  --swiggy-bg: #FFFFFF;
+  --swiggy-bg-gray: #F8F8F8;
+  --swiggy-border: #E9E9EB;
+  --swiggy-text: #282C3F;
+  --swiggy-text-light: #686B78;
+  --swiggy-text-muted: #93959F;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font);
+  background-color: var(--swiggy-bg-gray);
+  color: var(--swiggy-text);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--swiggy-orange);
+}
+
+/* ===== SKELETON SHIMMER ===== */
+@keyframes shimmer {
+  0% {
+    background-position: -600px 0;
+  }
+
+  100% {
+    background-position: 600px 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideup {
+  animation: slideUp 0.4s ease both;
+}
+
+/* ===== SWIGGY BUTTONS ===== */
+.swiggy-btn {
+  background: var(--swiggy-orange);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-size: 0.875rem;
+  font-weight: 800;
+  font-family: var(--font);
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background 0.2s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.swiggy-btn:hover {
+  background: var(--swiggy-orange-dark);
+}
+
+.swiggy-btn:active {
+  transform: scale(0.98);
+}
+
+.swiggy-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* ===== SWIGGY INPUT ===== */
+.swiggy-input {
+  width: 100%;
+  border: 1.5px solid var(--swiggy-border);
+  border-radius: 6px;
+  padding: 12px 14px 12px 40px;
+  font-size: 0.875rem;
+  font-family: var(--font);
+  color: var(--swiggy-text);
+  background: white;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.swiggy-input:focus {
+  border-color: var(--swiggy-orange);
+}
+
+.swiggy-input::placeholder {
+  color: var(--swiggy-text-muted);
+}
+
+.swiggy-input.error {
+  border-color: var(--swiggy-red);
+}
+
+/* ===== RATING BADGE ===== */
+.rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--swiggy-green);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ===== OFFER TAG ===== */
+.offer-tag {
+  background: var(--swiggy-orange-light);
+  color: var(--swiggy-orange);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* ===== STATUS BADGES ===== */
+.status-pending {
+  background: #FFFBEB;
+  border: 1.5px solid #FCD34D;
+  color: #D97706;
+}
+
+.status-preparing {
+  background: #EFF6FF;
+  border: 1.5px solid #93C5FD;
+  color: #2563EB;
+}
+
+.status-delivery {
+  background: #F5F3FF;
+  border: 1.5px solid #C4B5FD;
+  color: #7C3AED;
+}
+
+.status-delivered {
+  background: #F0FBF4;
+  border: 1.5px solid #86EFAC;
+  color: #16A34A;
+}
+
+.status-cancelled {
+  background: #FFF5F5;
+  border: 1.5px solid #FECACA;
+  color: #DC2626;
+}
+
+/* hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
