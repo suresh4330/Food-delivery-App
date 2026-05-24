@@ -1,20 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Clock, CheckCircle, ArrowRight, RefreshCw, User, Package } from 'lucide-react';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import API from '../../api/axios';
 import AdminLayout from '../../components/AdminLayout';
 
 const Dashboard = () => {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
+    const [metrics, setMetrics] = useState({ chart: [], statusBreakdown: [] });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
     const fetchData = async () => {
         setLoading(true); setError(false);
         try {
-            const { data } = await API.get('/order/admin');
-            setOrders(data || []);
+            const [ordersResponse, statsResponse] = await Promise.all([
+                API.get('/order/admin'),
+                API.get('/order/stats')
+            ]);
+            setOrders(ordersResponse.data || []);
+            setMetrics(statsResponse.data || { chart: [], statusBreakdown: [] });
         } catch { setError(true); }
         finally { setLoading(false); }
     };
@@ -94,6 +100,51 @@ const Dashboard = () => {
                         <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#93959F', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</div>
                     </div>
                 ))}
+            </div>
+
+            {/* Charts */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr', gap: '16px', marginBottom: '24px' }} className="dashboard-chart-grid">
+                <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #F0F0F0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                    <div style={{ marginBottom: '16px' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#282C3F' }}>Revenue Trend</h3>
+                        <p style={{ fontSize: '0.72rem', color: '#93959F', marginTop: '2px' }}>Last 10 active order days</p>
+                    </div>
+                    <div style={{ width: '100%', height: 260 }}>
+                        <ResponsiveContainer>
+                            <AreaChart data={metrics.chart}>
+                                <defs>
+                                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#FC8019" stopOpacity={0.28} />
+                                        <stop offset="95%" stopColor="#FC8019" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid stroke="#F0F0F0" vertical={false} />
+                                <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#93959F' }} />
+                                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#93959F' }} />
+                                <Tooltip formatter={(value, name) => [name === 'revenue' ? `₹${value}` : value, name === 'revenue' ? 'Revenue' : 'Orders']} />
+                                <Area type="monotone" dataKey="revenue" stroke="#FC8019" strokeWidth={3} fill="url(#revenueGradient)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #F0F0F0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                    <div style={{ marginBottom: '16px' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#282C3F' }}>Order Status</h3>
+                        <p style={{ fontSize: '0.72rem', color: '#93959F', marginTop: '2px' }}>Current pipeline</p>
+                    </div>
+                    <div style={{ width: '100%', height: 260 }}>
+                        <ResponsiveContainer>
+                            <BarChart data={metrics.statusBreakdown} layout="vertical" margin={{ left: 28 }}>
+                                <CartesianGrid stroke="#F0F0F0" horizontal={false} />
+                                <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#93959F' }} />
+                                <YAxis type="category" dataKey="status" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#686B78' }} width={96} />
+                                <Tooltip />
+                                <Bar dataKey="count" fill="#48C479" radius={[0, 8, 8, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
             </div>
 
             {/* Recent Orders */}
@@ -177,6 +228,14 @@ const Dashboard = () => {
                     </table>
                 )}
             </div>
+
+            <style>{`
+                @media (max-width: 900px) {
+                    .dashboard-chart-grid {
+                        grid-template-columns: 1fr !important;
+                    }
+                }
+            `}</style>
         </AdminLayout>
     );
 };

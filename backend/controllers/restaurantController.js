@@ -1,11 +1,31 @@
 const Restaurant = require('../models/Restaurant');
+const FoodItem = require('../models/FoodItem');
+const uploadImage = require('../utils/uploadImage');
+
+const buildRestaurantFilter = (query) => {
+    const filter = {};
+    if (query.includeInactive !== 'true') {
+        filter.isActive = true;
+    }
+
+    if (query.search) {
+        const searchRegex = new RegExp(query.search.trim(), 'i');
+        filter.$or = [
+            { name: searchRegex },
+            { description: searchRegex },
+            { address: searchRegex }
+        ];
+    }
+
+    return filter;
+};
 
 // @desc    Get all restaurants
 // @route   GET /api/restaurant
 // @access  Public
 exports.getRestaurants = async (req, res) => {
     try {
-        const restaurants = await Restaurant.find({ isActive: true });
+        const restaurants = await Restaurant.find(buildRestaurantFilter(req.query)).sort({ createdAt: -1 });
         res.json(restaurants);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -35,9 +55,10 @@ exports.createRestaurant = async (req, res) => {
     const { name, image, description, address } = req.body;
 
     try {
+        const uploadedImage = await uploadImage(req.file, 'quickbite/restaurants');
         const restaurant = await Restaurant.create({
             name,
-            image,
+            image: uploadedImage || image,
             description,
             address
         });
@@ -57,8 +78,9 @@ exports.updateRestaurant = async (req, res) => {
         const restaurant = await Restaurant.findById(req.params.id);
 
         if (restaurant) {
+            const uploadedImage = await uploadImage(req.file, 'quickbite/restaurants');
             restaurant.name = name || restaurant.name;
-            restaurant.image = image || restaurant.image;
+            restaurant.image = uploadedImage || image || restaurant.image;
             restaurant.description = description || restaurant.description;
             restaurant.address = address || restaurant.address;
             restaurant.isActive = isActive ?? restaurant.isActive;
@@ -99,6 +121,7 @@ exports.deleteRestaurant = async (req, res) => {
         const restaurant = await Restaurant.findById(req.params.id);
 
         if (restaurant) {
+            await FoodItem.deleteMany({ restaurantId: restaurant._id });
             await restaurant.deleteOne();
             res.json({ message: 'Restaurant removed' });
         } else {

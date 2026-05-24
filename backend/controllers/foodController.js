@@ -1,4 +1,5 @@
 const FoodItem = require('../models/FoodItem');
+const uploadImage = require('../utils/uploadImage');
 
 // @desc    Get food items by restaurant
 // @route   GET /api/food/restaurant/:restaurantId (and /api/food/:restaurantId)
@@ -6,11 +7,17 @@ const FoodItem = require('../models/FoodItem');
 exports.getFoodByRestaurant = async (req, res) => {
     try {
         const query = { restaurantId: req.params.restaurantId };
-        // If it's the admin asking (usually we can check req.user.role here, 
-        // but let's just allow it for now if we want to show all in admin panel)
-        // For simplicity, we'll return all if we're on the admin page, 
-        // but for public we should filter. Let's return all and let frontend decide or just return all for simplicity.
-        const foodItems = await FoodItem.find(query);
+        if (req.query.available === 'true') {
+            query.isAvailable = true;
+        }
+        if (req.query.category && req.query.category !== 'All') {
+            query.category = req.query.category;
+        }
+        if (req.query.search) {
+            query.name = new RegExp(req.query.search.trim(), 'i');
+        }
+
+        const foodItems = await FoodItem.find(query).sort({ createdAt: -1 });
         res.json(foodItems);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -25,10 +32,11 @@ exports.addFoodItem = async (req, res) => {
     const restaurantId = req.params.restaurantId || req.body.restaurantId;
 
     try {
+        const uploadedImage = await uploadImage(req.file, 'quickbite/foods');
         const foodItem = await FoodItem.create({
             restaurantId,
             name,
-            image,
+            image: uploadedImage || image,
             price,
             category,
             isAvailable: isAvailable ?? true
@@ -46,8 +54,9 @@ exports.updateFoodItem = async (req, res) => {
     try {
         const foodItem = await FoodItem.findById(req.params.id);
         if (foodItem) {
+            const uploadedImage = await uploadImage(req.file, 'quickbite/foods');
             foodItem.name = req.body.name || foodItem.name;
-            foodItem.image = req.body.image || foodItem.image;
+            foodItem.image = uploadedImage || req.body.image || foodItem.image;
             foodItem.price = req.body.price || foodItem.price;
             foodItem.category = req.body.category || foodItem.category;
             foodItem.isAvailable = req.body.isAvailable ?? foodItem.isAvailable;

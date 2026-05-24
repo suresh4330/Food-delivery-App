@@ -237,6 +237,18 @@ const Orders = () => {
                                                     );
                                                 })}
                                             </div>
+                                            {order.trackingHistory?.length > 0 && (
+                                                <div style={{ marginTop: '18px', display: 'grid', gap: '8px' }}>
+                                                    {order.trackingHistory.map((event, index) => (
+                                                        <div key={`${event.status}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '0.74rem' }}>
+                                                            <span style={{ color: '#686B78', fontWeight: 700 }}>{event.note || event.status}</span>
+                                                            <span style={{ color: '#93959F', whiteSpace: 'nowrap' }}>
+                                                                {new Date(event.updatedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 

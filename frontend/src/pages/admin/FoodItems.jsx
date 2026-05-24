@@ -27,6 +27,7 @@ const FoodItems = () => {
     const [formData, setFormData] = useState({
         name: '', price: '', category: '', image: '', isAvailable: true
     });
+    const [imageFile, setImageFile] = useState(null);
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState('');
 
@@ -97,7 +98,15 @@ const FoodItems = () => {
             });
         }
         setIsModalOpen(true);
+        setImageFile(null);
         setFormError('');
+    };
+
+    const buildPayload = () => {
+        const payload = new FormData();
+        Object.entries(formData).forEach(([key, value]) => payload.append(key, value));
+        if (imageFile) payload.append('imageFile', imageFile);
+        return payload;
     };
 
     const handleFormSubmit = async (e) => {
@@ -106,11 +115,11 @@ const FoodItems = () => {
         setFormError('');
         try {
             if (modalMode === 'add') {
-                const { data } = await API.post(`/food/${restaurantId}`, formData);
+                const { data } = await API.post(`/food/${restaurantId}`, buildPayload());
                 setFoodItems(prev => [data, ...prev]);
                 addToast('Item added to menu');
             } else {
-                const { data } = await API.put(`/food/${currentFood._id}`, formData);
+                const { data } = await API.put(`/food/${currentFood._id}`, buildPayload());
                 setFoodItems(prev => prev.map(f => f._id === data._id ? data : f));
                 addToast('Item updated successfully');
             }
@@ -327,17 +336,31 @@ const FoodItems = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Photo URL</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Food Photo</label>
                                 <div className="flex gap-4">
-                                    <input
-                                        type="text"
-                                        placeholder="https://..."
-                                        value={formData.image}
-                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                        className="flex-1 bg-gray-800 border border-transparent rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-orange-500/50 transition-all font-bold"
-                                    />
+                                    <div className="flex-1 space-y-3">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                                            className="w-full bg-gray-800 border border-transparent rounded-2xl px-5 py-4 text-white file:mr-4 file:border-0 file:rounded-xl file:bg-orange-500 file:px-4 file:py-2 file:text-white file:font-black focus:outline-none focus:border-orange-500/50 transition-all font-bold"
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Or paste image URL"
+                                            value={formData.image}
+                                            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                            className="w-full bg-gray-800 border border-transparent rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-orange-500/50 transition-all font-bold"
+                                        />
+                                    </div>
                                     <div className="w-14 h-14 bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 flex-shrink-0 flex items-center justify-center">
-                                        {formData.image ? <img src={formData.image} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={20} className="text-gray-600" />}
+                                        {imageFile ? (
+                                            <img src={URL.createObjectURL(imageFile)} alt="" className="w-full h-full object-cover" />
+                                        ) : formData.image ? (
+                                            <img src={formData.image} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <ImageIcon size={20} className="text-gray-600" />
+                                        )}
                                     </div>
                                 </div>
                             </div>

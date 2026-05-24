@@ -1,15 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, LogOut, MapPin, Menu, Shield, ShoppingCart, User, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useDeliveryLocation } from '../context/LocationContext';
+import LocationPicker from './LocationPicker';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
     const { cartCount } = useCart();
+    const { location } = useDeliveryLocation();
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [locationOpen, setLocationOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const role = user?.role?.toLowerCase();
+    const isAdmin = role === 'admin';
+    const isUser = role === 'user';
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -22,7 +30,7 @@ const Navbar = () => {
         navigate('/login');
     };
 
-    const navLinks = user?.role === 'admin'
+    const navLinks = isAdmin
         ? [
             { name: 'Dashboard', path: '/admin/dashboard' },
             { name: 'Restaurants', path: '/admin/restaurants' },
@@ -34,20 +42,25 @@ const Navbar = () => {
         ];
 
     return (
-        <header className={`qb-navbar ${scrolled ? 'is-scrolled' : ''}`}>
+        <motion.header
+            className={`qb-navbar ${scrolled ? 'is-scrolled' : ''}`}
+            initial={{ opacity: 0, y: -18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+        >
             <div className="qb-navbar-inner">
-                <NavLink to={user?.role === 'admin' ? '/admin/dashboard' : '/'} className="qb-brand">
+                <NavLink to={isAdmin ? '/admin/dashboard' : '/'} className="qb-brand">
                     <span className="qb-brand-mark">QB</span>
                     <span>
                         <strong>QuickBite</strong>
-                        {user?.role === 'admin' && <small>Admin</small>}
+                        {isAdmin && <small>Admin</small>}
                     </span>
                 </NavLink>
 
-                {user?.role === 'user' && (
-                    <button type="button" className="qb-location-button">
+                {isUser && (
+                    <button type="button" className="qb-location-button" onClick={() => setLocationOpen(true)} title={location.address}>
                         <MapPin size={16} />
-                        Home
+                        {location.label}
                         <ChevronDown size={14} />
                     </button>
                 )}
@@ -61,21 +74,35 @@ const Navbar = () => {
                 </nav>
 
                 <div className="qb-nav-actions">
-                    {user?.role === 'user' && (
+                    {isUser && (
+                        <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.96 }}>
                         <Link to="/cart" className="qb-cart-link">
                             <span>
                                 <ShoppingCart size={20} />
-                                {cartCount > 0 && <small>{cartCount}</small>}
+                                <AnimatePresence>
+                                    {cartCount > 0 && (
+                                        <motion.small
+                                            key={cartCount}
+                                            initial={{ scale: 0.4, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            exit={{ scale: 0.4, opacity: 0 }}
+                                            transition={{ type: 'spring', stiffness: 420, damping: 18 }}
+                                        >
+                                            {cartCount}
+                                        </motion.small>
+                                    )}
+                                </AnimatePresence>
                             </span>
                             Cart
                         </Link>
+                        </motion.div>
                     )}
 
                     <div className="qb-user-chip">
-                        <span>{user?.role === 'admin' ? <Shield size={15} /> : <User size={15} />}</span>
+                        <span>{isAdmin ? <Shield size={15} /> : <User size={15} />}</span>
                         <div>
                             <strong>{user?.name?.split(' ')[0] || 'User'}</strong>
-                            <small>{user?.role}</small>
+                            <small>{role || 'user'}</small>
                         </div>
                     </div>
 
@@ -95,24 +122,44 @@ const Navbar = () => {
                 </button>
             </div>
 
+            <AnimatePresence>
             {isMenuOpen && (
-                <div className="qb-mobile-panel">
+                <motion.div
+                    className="qb-mobile-panel"
+                    initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                    transition={{ duration: 0.22, ease: 'easeOut' }}
+                >
                     {navLinks.map((link) => (
                         <NavLink key={link.path} to={link.path} onClick={() => setIsMenuOpen(false)}>
                             {link.name}
                         </NavLink>
                     ))}
-                    {user?.role === 'user' && (
+                    {isUser && (
                         <NavLink to="/cart" onClick={() => setIsMenuOpen(false)}>
                             Cart ({cartCount})
                         </NavLink>
                     )}
+                    {isUser && (
+                        <button type="button" onClick={() => {
+                            setIsMenuOpen(false);
+                            setLocationOpen(true);
+                        }}>
+                            Change location
+                        </button>
+                    )}
                     <button type="button" onClick={handleLogout}>
                         Logout
                     </button>
-                </div>
+                </motion.div>
             )}
-        </header>
+            </AnimatePresence>
+
+            {isUser && (
+                <LocationPicker open={locationOpen} onClose={() => setLocationOpen(false)} />
+            )}
+        </motion.header>
     );
 };
 

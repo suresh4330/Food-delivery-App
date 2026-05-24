@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, Loader2, ArrowLeft, Tag } from 'lucide-react';
 import API from '../../api/axios';
 import { useCart } from '../../context/CartContext';
@@ -83,21 +84,23 @@ const Cart = () => {
 
     // ── Loading ──
     if (loading) return (
-        <div style={{ minHeight: '100vh', background: '#F8F8F8', paddingTop: '72px', fontFamily: "'Inter', sans-serif" }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ minHeight: '100vh', background: '#F8F8F8', paddingTop: '72px', fontFamily: "'Inter', sans-serif" }}>
             <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '32px 24px', display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: '120px', borderRadius: '12px' }} />)}
                 </div>
                 <div className="skeleton" style={{ height: '360px', borderRadius: '12px' }} />
             </div>
-        </div>
+        </motion.div>
     );
 
     // ── Empty ──
     if (cartItems.length === 0) return (
-        <div style={{ minHeight: '100vh', background: '#F8F8F8', paddingTop: '72px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif" }}>
-            <div style={{ textAlign: 'center', padding: '40px' }}>
-                <div style={{ fontSize: '5rem', marginBottom: '16px' }}>🛒</div>
+        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} style={{ minHeight: '100vh', background: '#F8F8F8', paddingTop: '72px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif" }}>
+            <motion.div style={{ textAlign: 'center', padding: '40px' }} initial={{ scale: 0.96 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220, damping: 20 }}>
+                <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }} style={{ width: '86px', height: '86px', borderRadius: '24px', margin: '0 auto 16px', display: 'grid', placeItems: 'center', background: '#FFF3E8', color: '#FC8019' }}>
+                    <ShoppingCart size={42} />
+                </motion.div>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#282C3F', marginBottom: '8px' }}>Your cart is empty</h2>
                 <p style={{ color: '#93959F', fontSize: '0.875rem', marginBottom: '24px', maxWidth: '300px', margin: '0 auto 24px' }}>
                     You have not added any items to your cart yet. Explore our restaurants!
@@ -105,25 +108,27 @@ const Cart = () => {
                 <button onClick={() => navigate('/')} className="swiggy-btn">
                     Browse Restaurants
                 </button>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 
     return (
-        <div style={{ minHeight: '100vh', background: '#F8F8F8', paddingTop: '72px', fontFamily: "'Inter', sans-serif" }}>
+        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} style={{ minHeight: '100vh', background: '#F8F8F8', paddingTop: '72px', fontFamily: "'Inter', sans-serif" }}>
 
             {/* Toast */}
             <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 999, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <AnimatePresence>
                 {toasts.map(t => (
-                    <div key={t.id} style={{
+                    <motion.div key={t.id} initial={{ opacity: 0, x: 24, scale: 0.96 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 24, scale: 0.96 }} style={{
                         background: t.type === 'success' ? '#48C479' : '#E23744',
                         color: 'white', fontWeight: 700, fontSize: '0.85rem',
                         padding: '11px 18px', borderRadius: '8px',
                         boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
                     }}>
                         {t.message}
-                    </div>
+                    </motion.div>
                 ))}
+                </AnimatePresence>
             </div>
 
             <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '28px 24px' }}>
@@ -181,7 +186,7 @@ const Cart = () => {
                         {cartItems.map((item, idx) => {
                             const imgSrc = item.foodId.image || FOOD_FALLBACKS[idx % FOOD_FALLBACKS.length];
                             return (
-                                <div key={item.foodId._id} style={{
+                                <motion.div key={item.foodId._id} layout initial={{ opacity: 0, y: 18, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, x: -18, scale: 0.98 }} whileHover={{ y: -3 }} transition={{ type: 'spring', stiffness: 260, damping: 24 }} style={{
                                     background: 'white',
                                     border: '1px solid #F0F0F0',
                                     borderRadius: '12px',
@@ -283,7 +288,7 @@ const Cart = () => {
                                     >
                                         <Trash2 size={16} />
                                     </button>
-                                </div>
+                                </motion.div>
                             );
                         })}
 
@@ -397,7 +402,7 @@ const Cart = () => {
 
                         {/* Safety tags */}
                         <div style={{ marginTop: '14px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                            {['🔒 100% Secure', '🚀 Fast Delivery', '💯 Quality Assured'].map(tag => (
+                            {['Secure checkout', 'Fast delivery', 'Quality assured'].map(tag => (
                                 <span key={tag} style={{ fontSize: '0.72rem', color: '#93959F', fontWeight: 600 }}>{tag}</span>
                             ))}
                         </div>
@@ -411,7 +416,7 @@ const Cart = () => {
                     .cart-grid { grid-template-columns: 1fr !important; }
                 }
             `}</style>
-        </div>
+        </motion.div>
     );
 };
 

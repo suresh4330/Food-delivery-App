@@ -22,6 +22,7 @@ const Restaurants = () => {
     const [formData, setFormData] = useState({
         name: '', description: '', address: '', image: '', isActive: true
     });
+    const [imageFile, setImageFile] = useState(null);
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState('');
 
@@ -77,7 +78,15 @@ const Restaurants = () => {
             });
         }
         setIsModalOpen(true);
+        setImageFile(null);
         setFormError('');
+    };
+
+    const buildPayload = () => {
+        const payload = new FormData();
+        Object.entries(formData).forEach(([key, value]) => payload.append(key, value));
+        if (imageFile) payload.append('imageFile', imageFile);
+        return payload;
     };
 
     const handleFormSubmit = async (e) => {
@@ -86,11 +95,11 @@ const Restaurants = () => {
         setFormError('');
         try {
             if (modalMode === 'add') {
-                const { data } = await API.post('/restaurant', formData);
+                const { data } = await API.post('/restaurant', buildPayload());
                 setRestaurants(prev => [data, ...prev]);
                 addToast('Restaurant added successfully!');
             } else {
-                const { data } = await API.put(`/restaurant/${currentRestaurant._id}`, formData);
+                const { data } = await API.put(`/restaurant/${currentRestaurant._id}`, buildPayload());
                 setRestaurants(prev => prev.map(r => r._id === data._id ? data : r));
                 addToast('Restaurant updated successfully!');
             }
@@ -321,17 +330,31 @@ const Restaurants = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Imagery URL</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Restaurant Image</label>
                                 <div className="flex gap-4">
-                                    <input
-                                        type="text"
-                                        placeholder="https://images.unsplash.com/..."
-                                        value={formData.image}
-                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                        className="flex-1 bg-gray-800 border border-transparent rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-orange-500/50 transition-all font-bold"
-                                    />
+                                    <div className="flex-1 space-y-3">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                                            className="w-full bg-gray-800 border border-transparent rounded-2xl px-5 py-4 text-white file:mr-4 file:border-0 file:rounded-xl file:bg-orange-500 file:px-4 file:py-2 file:text-white file:font-black focus:outline-none focus:border-orange-500/50 transition-all font-bold"
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Or paste image URL"
+                                            value={formData.image}
+                                            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                            className="w-full bg-gray-800 border border-transparent rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-orange-500/50 transition-all font-bold"
+                                        />
+                                    </div>
                                     <div className="w-14 h-14 bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 flex-shrink-0 flex items-center justify-center">
-                                        {formData.image ? <img src={formData.image} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={20} className="text-gray-600" />}
+                                        {imageFile ? (
+                                            <img src={URL.createObjectURL(imageFile)} alt="" className="w-full h-full object-cover" />
+                                        ) : formData.image ? (
+                                            <img src={formData.image} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <ImageIcon size={20} className="text-gray-600" />
+                                        )}
                                     </div>
                                 </div>
                             </div>

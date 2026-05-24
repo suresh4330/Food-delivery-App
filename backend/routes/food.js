@@ -5,17 +5,18 @@ const {
     addFoodItem,
     updateFoodItem,
     deleteFoodItem
-} = require('../controller/foodController');
+} = require('../controllers/foodController');
 const authMiddleware = require('../middleware/authMiddleware');
 const adminMiddleware = require('../middleware/adminMiddleware');
+const upload = require('../middleware/uploadMiddleware');
 
 // Public / User routes
 router.get('/restaurant/:restaurantId', getFoodByRestaurant);
 router.get('/:restaurantId', getFoodByRestaurant); // Also allow direct ID for frontend simplicity
 
 // Admin routes
-router.post('/:restaurantId', authMiddleware, adminMiddleware, addFoodItem);
-router.put('/:id', authMiddleware, adminMiddleware, updateFoodItem);
+router.post('/:restaurantId', authMiddleware, adminMiddleware, upload.single('imageFile'), addFoodItem);
+router.put('/:id', authMiddleware, adminMiddleware, upload.single('imageFile'), updateFoodItem);
 router.put('/:id/availability', authMiddleware, adminMiddleware, updateFoodItem);
 router.delete('/:id', authMiddleware, adminMiddleware, deleteFoodItem);
 

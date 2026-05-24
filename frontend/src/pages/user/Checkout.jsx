@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, CreditCard, Banknote, ShoppingBag, ShieldCheck, Info, CheckCircle } from 'lucide-react';
 import API from '../../api/axios';
 import { useCart } from '../../context/CartContext';
+import { useToast } from '../../context/ToastContext';
 
 const FOOD_FALLBACKS = [
     'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=100&h=100&fit=crop',
@@ -11,9 +12,23 @@ const FOOD_FALLBACKS = [
     'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=100&h=100&fit=crop',
 ];
 
+const loadRazorpayScript = () => new Promise((resolve) => {
+    if (window.Razorpay) {
+        resolve(true);
+        return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+});
+
 const Checkout = () => {
     const navigate = useNavigate();
     const { updateCartCount } = useCart();
+    const { showToast } = useToast();
 
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -47,13 +62,53 @@ const Checkout = () => {
         }
         setPlacingOrder(true);
         try {
-            await API.post('/order', formData);
+            if (formData.paymentMethod === 'Online') {
+                const loaded = await loadRazorpayScript();
+                if (!loaded) {
+                    throw new Error('Unable to load Razorpay checkout.');
+                }
+
+                const { data: paymentOrder } = await API.post('/order/payment/create');
+                await new Promise((resolve, reject) => {
+                    const razorpay = new window.Razorpay({
+                        key: paymentOrder.key,
+                        amount: paymentOrder.amount,
+                        currency: paymentOrder.currency,
+                        name: 'QuickBite',
+                        description: 'Food order payment',
+                        order_id: paymentOrder.orderId,
+                        handler: async (response) => {
+                            try {
+                                await API.post('/order', {
+                                    ...formData,
+                                    razorpayOrderId: response.razorpay_order_id,
+                                    razorpayPaymentId: response.razorpay_payment_id,
+                                    razorpaySignature: response.razorpay_signature,
+                                });
+                                resolve();
+                            } catch (error) {
+                                reject(error);
+                            }
+                        },
+                        modal: {
+                            ondismiss: () => reject(new Error('Payment cancelled')),
+                        },
+                        theme: { color: '#FC8019' },
+                    });
+                    razorpay.open();
+                });
+            } else {
+                await API.post('/order', formData);
+            }
             updateCartCount(0);
+            showToast('Order placed successfully');
             setShowSuccess(true);
             const iv = setInterval(() => setProgress(p => { if (p >= 100) { clearInterval(iv); return 100; } return p + 1; }), 30);
             setTimeout(() => navigate('/orders'), 3500);
         } catch (err) {
-            setErrors({ api: err.response?.data?.message || 'Failed to place order.' });
+            const message = err.response?.data?.message || err.message || 'Failed to place order.';
+            setErrors({ api: message });
+            showToast(message, 'error');
         } finally { setPlacingOrder(false); }
     };
 
