@@ -23,7 +23,15 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // JSX member expressions such as <motion.div /> are not recognised as
+      // variable references by the base rule.
+      'no-unused-vars': ['error', {
+        varsIgnorePattern: '^(motion|[A-Z_])',
+        argsIgnorePattern: '^[A-Z_]',
+        caughtErrors: 'none',
+      }],
+      // Context files intentionally export both a provider and its companion hook.
+      'react-refresh/only-export-components': 'off',
     },
   },
 ])

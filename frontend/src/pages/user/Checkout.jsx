@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, CreditCard, Banknote, ShoppingBag, ShieldCheck, Info, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, CreditCard, Banknote, ShoppingBag, ShieldCheck, Info, CheckCircle, Home, Briefcase, Bookmark } from 'lucide-react';
 import API from '../../api/axios';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
+import MapPicker from '../../components/MapPicker';
 
 const FOOD_FALLBACKS = [
     'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=100&h=100&fit=crop',
@@ -35,8 +36,44 @@ const Checkout = () => {
     const [placingOrder, setPlacingOrder] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [progress, setProgress] = useState(0);
-    const [formData, setFormData] = useState({ deliveryAddress: '', paymentMethod: 'COD' });
+    const [formData, setFormData] = useState({ deliveryAddress: '', paymentMethod: 'COD', location: null });
     const [errors, setErrors] = useState({});
+    const [gettingLocation, setGettingLocation] = useState(false);
+    const [showMapPicker, setShowMapPicker] = useState(false);
+    const [savedAddresses, setSavedAddresses] = useState([]);
+
+    const handleMapConfirm = async (pos, saveLabel) => {
+        setShowMapPicker(false);
+        setGettingLocation(true);
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`);
+            const data = await res.json();
+            const addressString = (data && data.display_name) ? data.display_name : "Selected Location on Map";
+            
+            setFormData(prev => ({
+                ...prev,
+                deliveryAddress: addressString,
+                location: { lat: pos.lat, lng: pos.lng }
+            }));
+            setErrors(prev => ({ ...prev, deliveryAddress: undefined }));
+
+            if (saveLabel) {
+                try {
+                    const saveRes = await API.post('/user/addresses', {
+                        label: saveLabel,
+                        address: addressString,
+                        location: { lat: pos.lat, lng: pos.lng }
+                    });
+                    setSavedAddresses(saveRes.data);
+                    showToast(`Saved as ${saveLabel}`);
+                } catch { console.log('Could not save address'); }
+            }
+        } catch {
+            setErrors(prev => ({ ...prev, deliveryAddress: 'Failed to fetch address from coordinates' }));
+        } finally {
+            setGettingLocation(false);
+        }
+    };
 
     useEffect(() => {
         (async () => {
@@ -45,6 +82,11 @@ const Checkout = () => {
                 const { data } = await API.get('/cart');
                 if (!data.items || data.items.length === 0) { navigate('/cart'); return; }
                 setCartItems(data.items);
+                
+                try {
+                    const addrRes = await API.get('/user/addresses');
+                    setSavedAddresses(addrRes.data || []);
+                } catch { console.log('Could not fetch addresses'); }
             } catch { navigate('/cart'); }
             finally { setLoading(false); }
         })();
@@ -190,12 +232,51 @@ const Checkout = () => {
 
                     {/* Delivery Address */}
                     <div style={{ background: 'white', borderRadius: '14px', padding: '24px', border: '1px solid #F0F0F0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#282C3F', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ background: '#FFF3E8', borderRadius: '8px', padding: '6px', display: 'flex' }}>
-                                <MapPin size={18} style={{ color: '#FC8019' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#282C3F', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                                <div style={{ background: '#FFF3E8', borderRadius: '8px', padding: '6px', display: 'flex' }}>
+                                    <MapPin size={18} style={{ color: '#FC8019' }} />
+                                </div>
+                                Delivery Address
+                            </h3>
+                            <button 
+                                type="button" 
+                                onClick={() => setShowMapPicker(true)} 
+                                disabled={gettingLocation}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '6px',
+                                    background: 'none', border: '1px solid #FC8019', color: '#FC8019',
+                                    padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem',
+                                    fontWeight: 700, cursor: gettingLocation ? 'not-allowed' : 'pointer',
+                                    opacity: gettingLocation ? 0.6 : 1, transition: 'all 0.2s'
+                                }}
+                            >
+                                {gettingLocation ? '📍 Locating...' : '📍 Map / Location'}
+                            </button>
+                        </div>
+                        
+                        {/* Saved Addresses */}
+                        {savedAddresses.length > 0 && (
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                                {savedAddresses.map((addr, i) => (
+                                    <button 
+                                        key={i} type="button" 
+                                        onClick={() => setFormData(prev => ({ ...prev, deliveryAddress: addr.address, location: addr.location }))}
+                                        style={{ 
+                                            padding: '8px 12px', background: 'white', border: '1px solid #E9E9EB', borderRadius: '8px', 
+                                            display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer',
+                                            fontSize: '0.75rem', fontWeight: 600, color: '#282C3F', transition: 'all 0.2s' 
+                                        }}
+                                        onMouseEnter={e => { e.currentTarget.style.borderColor = '#FC8019'; e.currentTarget.style.color = '#FC8019'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.borderColor = '#E9E9EB'; e.currentTarget.style.color = '#282C3F'; }}
+                                    >
+                                        {addr.label === 'Home' ? <Home size={14} color="#FC8019"/> : addr.label === 'Work' ? <Briefcase size={14} color="#3B82F6"/> : <Bookmark size={14} color="#8B5CF6"/>}
+                                        {addr.label}
+                                    </button>
+                                ))}
                             </div>
-                            Delivery Address
-                        </h3>
+                        )}
+
                         <textarea
                             value={formData.deliveryAddress}
                             onChange={e => { setFormData({ ...formData, deliveryAddress: e.target.value }); setErrors({}); }}
@@ -340,6 +421,14 @@ const Checkout = () => {
                 @keyframes popIn { from{transform:scale(0.85);opacity:0} to{transform:scale(1);opacity:1} }
                 @media (max-width: 850px) { .checkout-grid { grid-template-columns: 1fr !important; } }
             `}</style>
+
+            {showMapPicker && (
+                <MapPicker 
+                    initialPosition={formData.location} 
+                    onConfirm={handleMapConfirm} 
+                    onCancel={() => setShowMapPicker(false)} 
+                />
+            )}
         </div>
     );
 };

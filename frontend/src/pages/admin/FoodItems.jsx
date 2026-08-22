@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Plus, Pencil, Trash2, ArrowLeft, Search,
@@ -16,7 +16,7 @@ const FoodItems = () => {
     const [restaurant, setRestaurant] = useState(null);
     const [foodItems, setFoodItems] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
+    const [, setError] = useState(false);
     const [activeCategory, setActiveCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -43,7 +43,7 @@ const FoodItems = () => {
         setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
     };
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         setError(false);
         try {
@@ -60,11 +60,11 @@ const FoodItems = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [restaurantId]);
 
     useEffect(() => {
         fetchData();
-    }, [restaurantId]);
+    }, [fetchData]);
 
     const categories = useMemo(() => {
         const cats = ['All', ...new Set(foodItems.map(item => item.category).filter(Boolean))];

@@ -15,6 +15,7 @@ const restaurantRoutes = require('./routes/restaurant');
 const foodRoutes = require('./routes/food');
 const cartRoutes = require('./routes/cart');
 const orderRoutes = require('./routes/order');
+const userRoutes = require('./routes/user');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/restaurant', restaurantRoutes);   // alias
 app.use('/api/foods', foodRoutes);
 app.use('/api/food', foodRoutes);               // alias
 app.use('/api/cart', cartRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/order', orderRoutes);             // alias
 

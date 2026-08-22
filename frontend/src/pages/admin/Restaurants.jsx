@@ -12,7 +12,7 @@ const Restaurants = () => {
     const navigate = useNavigate();
     const [restaurants, setRestaurants] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
+    const [, setError] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     // Modal State
@@ -116,7 +116,7 @@ const Restaurants = () => {
             const { data } = await API.put(`/restaurant/${res._id}`, { isActive: !res.isActive });
             setRestaurants(prev => prev.map(r => r._id === data._id ? data : r));
             addToast(`Restaurant marked as ${data.isActive ? 'Active' : 'Inactive'}`);
-        } catch (err) {
+        } catch {
             addToast('Failed to update status', 'error');
         }
     };
@@ -127,7 +127,7 @@ const Restaurants = () => {
             setRestaurants(prev => prev.filter(r => r._id !== deleteId));
             addToast('Restaurant removed successfully');
             setDeleteId(null);
-        } catch (err) {
+        } catch {
             addToast('Failed to delete restaurant', 'error');
         }
     };

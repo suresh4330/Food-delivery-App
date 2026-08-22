@@ -340,6 +340,15 @@ const Orders = () => {
                                                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '260px' }}>
                                                     {order.deliveryAddress}
                                                 </span>
+                                                {order.location && order.location.lat && (
+                                                    <a 
+                                                        href={`https://www.google.com/maps/search/?api=1&query=${order.location.lat},${order.location.lng}`} 
+                                                        target="_blank" rel="noreferrer"
+                                                        style={{ marginLeft: '4px', color: '#3B82F6', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '2px', fontWeight: 600, fontSize: '0.7rem' }}
+                                                    >
+                                                        (View on Map)
+                                                    </a>
+                                                )}
                                             </div>
                                             {/* Payment */}
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>

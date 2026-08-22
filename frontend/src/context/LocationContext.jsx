@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 
 const LocationContext = createContext(null);
 
@@ -9,16 +9,14 @@ const DEFAULT_LOCATION = {
 };
 
 export const LocationProvider = ({ children }) => {
-    const [location, setLocationState] = useState(DEFAULT_LOCATION);
-
-    useEffect(() => {
+    const [location, setLocationState] = useState(() => {
         try {
             const saved = window.localStorage.getItem('quickbite-location');
-            if (saved) setLocationState({ ...DEFAULT_LOCATION, ...JSON.parse(saved) });
+            return saved ? { ...DEFAULT_LOCATION, ...JSON.parse(saved) } : DEFAULT_LOCATION;
         } catch {
-            setLocationState(DEFAULT_LOCATION);
+            return DEFAULT_LOCATION;
         }
-    }, []);
+    });
 
     const setLocation = (nextLocation) => {
         const updated = {

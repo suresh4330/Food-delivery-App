@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useContext } from 'react';
 import API from '../api/axios';
 
 const AuthContext = createContext();
@@ -6,17 +6,8 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem('token'));
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        if (token) {
-            // Deciding not to call a verify endpoint to keep it simple as per context
-            // But usually we would fetch user details here
-            setLoading(false);
-        } else {
-            setLoading(false);
-        }
-    }, [token]);
+    // No asynchronous session verification is performed on application start.
+    const [loading] = useState(false);
 
     const login = async (email, password) => {
         const { data } = await API.post('/auth/login', { email, password });

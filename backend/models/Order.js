@@ -10,6 +10,10 @@ const orderSchema = new mongoose.Schema({
     }],
     totalAmount: { type: Number, required: true },
     deliveryAddress: { type: String, required: true },
+    location: {
+        lat: { type: Number },
+        lng: { type: Number }
+    },
     paymentMethod: { type: String, enum: ['COD', 'Online'], default: 'COD' },
     paymentStatus: { type: String, enum: ['Pending', 'Paid', 'Failed'], default: 'Pending' },
     razorpayOrderId: { type: String },

@@ -43,7 +43,7 @@ const getCartSummary = async (userId) => {
 // @route   POST /api/order
 // @access  Private
 exports.createOrder = async (req, res) => {
-    const { deliveryAddress, paymentMethod, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
+    const { deliveryAddress, location, paymentMethod, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
 
     try {
         const { cart, totalAmount, items } = await getCartSummary(req.user.id);
@@ -76,6 +76,7 @@ exports.createOrder = async (req, res) => {
             items,
             totalAmount,
             deliveryAddress,
+            location,
             paymentMethod: paymentMethod || 'COD',
             paymentStatus,
             razorpayOrderId,

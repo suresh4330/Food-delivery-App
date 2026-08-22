@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, Loader2, ArrowLeft, Tag } from 'lucide-react';
@@ -24,13 +24,13 @@ const Cart = () => {
     const [coupon, setCoupon] = useState('');
     const [couponApplied, setCouponApplied] = useState(false);
 
-    const addToast = (message, type = 'success') => {
+    const addToast = useCallback((message, type = 'success') => {
         const id = Date.now();
         setToasts(prev => [...prev, { id, message, type }]);
         setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
-    };
+    }, []);
 
-    const fetchCart = async () => {
+    const fetchCart = useCallback(async () => {
         setLoading(true);
         try {
             const { data } = await API.get('/cart');
@@ -41,8 +41,8 @@ const Cart = () => {
         } finally {
             setLoading(false);
         }
-    };
-    useEffect(() => { fetchCart(); }, []);
+    }, [addToast, updateCartCount]);
+    useEffect(() => { fetchCart(); }, [fetchCart]);
 
     const subtotal = useMemo(() => cartItems.reduce((a, i) => a + i.foodId.price * i.quantity, 0), [cartItems]);
     const discount = couponApplied ? Math.min(100, Math.round(subtotal * 0.1)) : 0;

@@ -257,7 +257,6 @@ const AdminOrders = () => {
                                                 {STATUS_FLOW.map((status, i) => {
                                                     const sCfg = STATUS_CONFIG[status];
                                                     const isCurrent = order.status === status;
-                                                    const isPast = currentIdx >= i;
                                                     const isNext = i === currentIdx + 1;
                                                     const isDisabled = order.status === 'Delivered' || order.status === 'Cancelled';
 
