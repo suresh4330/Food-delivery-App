@@ -94,11 +94,11 @@ Food Delivery App helps users easily browse nearby restaurants, explore detailed
 
 | User Home / Restaurants | Shopping Cart |
 | :---: | :---: |
-| <img src="https://via.placeholder.com/500x300.png?text=Home+Page" width="500"/> | <img src="https://via.placeholder.com/500x300.png?text=Cart+Page" width="500"/> |
+| <img src="https://placehold.co/500x300/1e1e1e/fff?text=Home+Page" width="500"/> | <img src="https://placehold.co/500x300/1e1e1e/fff?text=Cart+Page" width="500"/> |
 
 | Interactive Checkout Map | Admin Dashboard |
 | :---: | :---: |
-| <img src="https://via.placeholder.com/500x300.png?text=Checkout+Map" width="500"/> | <img src="https://via.placeholder.com/500x300.png?text=Admin+Dashboard" width="500"/> |
+| <img src="https://placehold.co/500x300/1e1e1e/fff?text=Checkout+Map" width="500"/> | <img src="https://placehold.co/500x300/1e1e1e/fff?text=Admin+Dashboard" width="500"/> |
 
 ---
 
